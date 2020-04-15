@@ -44,13 +44,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     Button start;
     Button stop;
 
+
     // Esta es la Funcion main
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
         mensaje1 = (TextView) findViewById(R.id.mensaje_id);
@@ -127,11 +127,174 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 
+    //Constructor
+    public MapsActivity() {
+        raiz = null;
+    }
+
+
+    //ListaGenericaDoblementeEnlazada
+    class Nodo {
+        String lat, lon;
+        Nodo ant, sig;
+    }
+
+    int posNodo = 1;
+
+    private Nodo raiz;
+
+    public ListaGenericaDoblementeEnlazada() {
+        raiz = null;
+    }
+
+    void insertar(int pos, int x) {
+        if (pos <= cantidad() + 1) {
+            Nodo nuevo = new Nodo();
+            nuevo.info = x;
+            if (pos == 1) {
+                nuevo.sig = raiz;
+                if (raiz != null) {
+                    raiz.ant = nuevo;
+                }
+                raiz = nuevo;
+            } else if (pos == cantidad() + 1) {
+                Nodo reco = raiz;
+                while (reco.sig != null) {
+                    reco = reco.sig;
+                }
+                reco.sig = nuevo;
+                nuevo.ant = reco;
+                nuevo.sig = null;
+            } else {
+                Nodo reco = raiz;
+                for (int f = 1; f <= pos - 2; f++) {
+                    reco = reco.sig;
+                }
+                Nodo siguiente = reco.sig;
+                reco.sig = nuevo;
+                nuevo.ant = reco;
+                nuevo.sig = siguiente;
+                siguiente.ant = nuevo;
+            }
+        }
+    }
+
+    public int extraer(int pos) {
+        if (pos <= cantidad()) {
+            String latitude, longitude;
+            if (pos == 1) {
+                latitude = raiz.lat;
+                longitude = raiz.lon;
+                raiz = raiz.sig;
+                if (raiz != null) {
+                    raiz.ant = null;
+                }
+            } else {
+                Nodo reco;
+                reco = raiz;
+                for (int f = 1; f <= pos - 2; f++) {
+                    reco = reco.sig;
+                }
+                Nodo prox = reco.sig;
+                reco.sig = prox.sig;
+                Nodo siguiente = prox.sig;
+                if (siguiente != null) {
+                    siguiente.ant = reco;
+                }
+                latitude = prox.lat;
+                longitude = prox.lon;
+            }
+            return latitude + " " + longitude;
+        } else {
+            return Integer.MAX_VALUE;
+        }
+    }
+
+    public void borrar(int pos) {
+        if (pos <= cantidad()) {
+            if (pos == 1) {
+                raiz = raiz.sig;
+                if (raiz != null) {
+                    raiz.ant = null;
+                }
+            } else {
+                Nodo reco;
+                reco = raiz;
+                for (int f = 1; f <= pos - 2; f++) {
+                    reco = reco.sig;
+                }
+                Nodo prox = reco.sig;
+                prox = prox.sig;
+                reco.sig = prox;
+                if (prox != null) {
+                    prox.ant = reco;
+                }
+            }
+        }
+    }
+
+    public int cantidad() {
+        int cant = 0;
+        Nodo reco = raiz;
+        while (reco != null) {
+            reco = reco.sig;
+            cant++;
+        }
+        return cant;
+    }
+
+    public boolean vacia() {
+        if (raiz == null) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public void imprimir() {
+        Nodo reco = raiz;
+        while (reco != null) {
+            System.out.print(reco.lat + " " + reco.lon);
+            reco = reco.sig;
+        }
+        System.out.println();
+    }
+
+    public int PosicionElemento(String x, String y) {
+        Nodo reco = raiz;
+        int cont = 1;
+        while (reco != null) {
+            if (x.equals(reco.lan) && y.equals(reco.lon)) {
+                return cont;
+            }
+            reco = reco.sig;
+            cont = cont + 1;
+        }
+        return 0;
+    }
+
+    public int GetPos(String x, String y) {
+        int pos = 0;
+        Nodo reco = raiz;
+        while (reco != null) {
+            pos++;
+            if (reco.lat == x && reco.lon == y) {
+                return pos;
+            }
+            reco = reco.sig;
+        }
+
+        return 0;
+    }
+
+
+    
     public class Localizacion implements LocationListener {
         MapsActivity mainActivity;
         public MapsActivity getMainActivity() {
             return mainActivity;
         }
+
 
         public void setMainActivity(MapsActivity mainActivity) {
             this.mainActivity = mainActivity;
@@ -157,16 +320,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             this.mainActivity.setLocation(loc);
         }
 
+
         // Este metodo se ejecuta cuando el GPS es desactivado
         @Override
         public void onProviderDisabled(String provider) {
             mensaje1.setText("GPS Desactivado");
         }
+
+
         // Este metodo se ejecuta cuando el GPS es activado
         @Override
         public void onProviderEnabled(String provider) {
             mensaje1.setText("GPS Activado");
         }
+
+
         @Override
         public void onStatusChanged(String provider, int status, Bundle extras) {
             switch (status) {
