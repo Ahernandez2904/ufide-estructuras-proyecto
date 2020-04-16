@@ -44,11 +44,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     Button start;
     Button stop;
 
-
     // Esta es la Funcion main
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        MapsActivity mp = new MapsActivity(); //ejecuta el constructor para iniciar raíz en null.
+
         setContentView(R.layout.activity_maps);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -73,9 +75,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
-
     // Practicamente inicializa todos los recursos para obtener datos de GPS
     private void locationStart() {
+
         start.setText("Espere...");
         LocationManager mlocManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         Localizacion Local = new Localizacion();
@@ -94,7 +96,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mensaje1.setText("Localizando");
         mensaje2.setText("");
     }
-
 
     //  Esta funcion nos da el nombre de donde estamos la direccion de la calle a partir de la latitud y la longitud
     @SuppressLint("SetTextI18n")
@@ -115,7 +116,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-
     //  Esta funcion es la del Mapa
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -126,12 +126,25 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.moveCamera(CameraUpdateFactory.newLatLng(myPos));
     }
 
-
     //Constructor
     public MapsActivity() {
         raiz = null;
     }
 
+    //Timer - cronómetro
+    public int cronometro (int seg) {
+        System.out.println(seg);
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(ListaGenericaDoblementeEnlazada.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        if (seg >= 0) {
+
+            return cronometro(seg + 1);
+        }
+        return 0;
+    }
 
     //ListaGenericaDoblementeEnlazada
     class Nodo {
@@ -147,10 +160,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         raiz = null;
     }
 
-    void insertar(int pos, int x) {
+    void insertar(int pos, String x, String y) {
         if (pos <= cantidad() + 1) {
             Nodo nuevo = new Nodo();
-            nuevo.info = x;
+            nuevo.lat = x;
+            nuevo.lon = y;
             if (pos == 1) {
                 nuevo.sig = raiz;
                 if (raiz != null) {
@@ -287,19 +301,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return 0;
     }
 
-
-    
     public class Localizacion implements LocationListener {
         MapsActivity mainActivity;
         public MapsActivity getMainActivity() {
             return mainActivity;
         }
 
-
         public void setMainActivity(MapsActivity mainActivity) {
             this.mainActivity = mainActivity;
         }
-
 
         // Este metodo se ejecuta cada vez que el GPS recibe nuevas coordenadas
         // debido a la deteccion de un cambio de ubicacion
@@ -308,6 +318,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             loc.getLatitude();
             loc.getLongitude();
+
+            //agregar nodo
+            insertar(loc.getLatitude(), loc.getLongitude());
 
             LatLng myPos = new LatLng( loc.getLatitude(), loc.getLongitude());
             mMap.addMarker(new MarkerOptions().position(myPos));
@@ -320,20 +333,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             this.mainActivity.setLocation(loc);
         }
 
-
         // Este metodo se ejecuta cuando el GPS es desactivado
         @Override
         public void onProviderDisabled(String provider) {
             mensaje1.setText("GPS Desactivado");
         }
 
-
         // Este metodo se ejecuta cuando el GPS es activado
         @Override
         public void onProviderEnabled(String provider) {
             mensaje1.setText("GPS Activado");
         }
-
 
         @Override
         public void onStatusChanged(String provider, int status, Bundle extras) {
@@ -349,5 +359,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     break;
             }
         }
+
     }
+
 }
